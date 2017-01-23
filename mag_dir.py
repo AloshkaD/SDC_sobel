@@ -12,25 +12,21 @@ image = mpimg.imread('signs_vehicles_xygrad.png')
 # then computes the magnitude of the gradient
 # and applies a threshold
 def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
-    
-    # Apply the following steps to img
-    # 1) Convert to grayscale
-  
+    # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    # 2) Take the gradient in x and y separately
-    x = cv2.Sobel(gray, cv2.CV_64F, 1, 0)
-    y = cv2.Sobel(gray, cv2.CV_64F, 0, 1)
-    # 3) Calculate the magnitude 
-    #abs_sobelx= sqrt(x**2)
-    #abs_sobely= sqrt(y**2)
-    abs_sobelxy= np.absolute(x + y)
-    # 4) Scale to 8-bit (0 - 255) and convert to type = np.uint8
-    scaled_sobel = np.uint8(255*abs_sobelxy/np.max(abs_sobelxy))
-    # 5) Create a binary mask where mag thresholds are met
-    binary_output = np.zeros_like(scaled_sobel)
-    # 6) Return this mask as your binary_output image
-    binary_output[(scaled_sobel >= mag_thresh[0]) & (scaled_sobel <= mag_thresh[1])] = 1
-    #binary_output = np.copy(img) # Remove this line
+    # Take both Sobel x and y gradients
+    sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
+    sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+    # Calculate the gradient magnitude
+    gradmag = np.sqrt(sobelx**2 + sobely**2)
+    # Rescale to 8 bit
+    scale_factor = np.max(gradmag)/255 
+    gradmag = (gradmag/scale_factor).astype(np.uint8) 
+    # Create a binary image of ones where threshold is met, zeros otherwise
+    binary_output = np.zeros_like(gradmag)
+    binary_output[(gradmag >= mag_thresh[0]) & (gradmag <= mag_thresh[1])] = 1
+
+    # Return the binary image
     return binary_output
     
 # Run the function
